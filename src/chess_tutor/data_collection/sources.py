@@ -119,4 +119,20 @@ INTERNET_ARCHIVE_SOURCES = [
         filename="dli_ministry_13269_the_game_of_chess.txt",
         notes="Internet Archive full text generated from OCR.",
     ),
+    Source(
+        source_id="bwb_S0-CIH-670",
+        provider="internet_archive",
+        author="Emanuel Lasker",
+        title="Lasker's Manual of Chess",
+        license_name="Public domain",
+        source_url=(
+            "https://commons.wikimedia.org/wiki/"
+            "File:Lasker_(1927)_-_Manual_of_Chess.pdf"
+        ),
+        download_url=(
+            "https://archive.org/stream/bwb_S0-CIH-670/" "bwb_S0-CIH-670_djvu.txt"
+        ),
+        filename="bwb_s0_cih_670_laskers_manual_of_chess.txt",
+        notes="Wikimedia Commons public-domain PDF; text from Internet Archive OCR.",
+    ),
 ]
