@@ -20,6 +20,9 @@ class Settings:
     chunk_overlap: int = 128
     embedding_cost_per_1m_tokens_usd: float = 0.02
     max_embedding_cost_usd: float = 0.50
+    similarity_top_k: int = 5
+    max_history_messages: int = 6
+    llm_temperature: float = 0.2
 
 
 def load_settings() -> Settings:
@@ -40,4 +43,7 @@ def load_settings() -> Settings:
             getenv("EMBEDDING_COST_PER_1M_TOKENS_USD", "0.02")
         ),
         max_embedding_cost_usd=float(getenv("MAX_EMBEDDING_COST_USD", "0.50")),
+        similarity_top_k=int(getenv("SIMILARITY_TOP_K", "5")),
+        max_history_messages=int(getenv("MAX_HISTORY_MESSAGES", "6")),
+        llm_temperature=float(getenv("OPENAI_LLM_TEMPERATURE", "0.2")),
     )

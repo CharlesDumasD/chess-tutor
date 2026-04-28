@@ -3,22 +3,27 @@
 import gradio as gr
 
 from chess_tutor.config import load_settings
+from chess_tutor.rag.engine import answer_question
 
 
-def answer_question(question: str, api_key: str) -> str:
-    """Return a placeholder answer until the RAG pipeline is implemented."""
+def respond(question: str, history: list[dict[str, str]], api_key: str):
+    """Answer a question and update the visible chat history."""
 
-    if not api_key.strip():
-        return "Please paste your OpenAI API key before asking a question."
+    history = history or []
 
     if not question.strip():
-        return "Ask a chess strategy question to get started."
+        return history, ""
 
-    return (
-        "The RAG pipeline is not connected yet. Next steps are to ingest a public "
-        "domain chess corpus into ChromaDB, retrieve relevant passages with "
-        "LlamaIndex, and answer with OpenAI while citing sources."
-    )
+    try:
+        answer = answer_question(question, api_key, history)
+    except Exception as error:
+        answer = f"Something went wrong: {error}"
+
+    history = history + [
+        {"role": "user", "content": question},
+        {"role": "assistant", "content": answer},
+    ]
+    return history, ""
 
 
 def build_demo() -> gr.Blocks:
@@ -39,15 +44,26 @@ def build_demo() -> gr.Blocks:
             value=settings.openai_api_key or "",
             placeholder="sk-...",
         )
+        chatbot = gr.Chatbot(type="messages", label="Conversation")
         question = gr.Textbox(
             label="Question",
             lines=4,
             placeholder="Why is the Nimzo-Indian pawn structure comfortable for Black?",
         )
-        answer = gr.Markdown(label="Answer")
         submit = gr.Button("Ask")
+        clear = gr.Button("Clear")
 
-        submit.click(answer_question, inputs=[question, api_key], outputs=answer)
+        submit.click(
+            respond,
+            inputs=[question, chatbot, api_key],
+            outputs=[chatbot, question],
+        )
+        question.submit(
+            respond,
+            inputs=[question, chatbot, api_key],
+            outputs=[chatbot, question],
+        )
+        clear.click(lambda: [], outputs=chatbot)
 
     return demo
 

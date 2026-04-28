@@ -119,7 +119,8 @@ def build_index() -> None:
         pass
 
     chroma_collection = chroma_client.get_or_create_collection(
-        settings.chroma_collection_name
+        settings.chroma_collection_name,
+        metadata={"hnsw:space": "cosine"},
     )
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)

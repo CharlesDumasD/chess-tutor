@@ -106,8 +106,9 @@ Run the indexing pipeline:
 uv run chess-tutor-index
 ```
 
-The index command rebuilds the local ChromaDB collection each time, which keeps
-the pipeline simple and avoids duplicate chunks while iterating.
+The index command rebuilds the local ChromaDB collection each time using cosine
+similarity, which keeps the pipeline simple and avoids duplicate chunks while
+iterating.
 
 Pipeline settings are loaded from `src/chess_tutor/config.py`. The `Settings`
 dataclass defines the default values used by the app, including:
@@ -117,6 +118,9 @@ dataclass defines the default values used by the app, including:
 - processed data directory
 - ChromaDB persist directory and collection name
 - chunk size and overlap
+- retrieval top-k
+- conversation memory length
+- LLM temperature
 - embedding cost estimate and maximum allowed indexing cost
 
 For experiments, change the defaults in `config.py`. For local secrets or
@@ -130,8 +134,6 @@ command stops before calling the OpenAI API. The default limit is USD 0.50.
 
 ## Pipeline 4: RAG Tutor App
 
-Status: placeholder UI implemented; RAG engine not connected yet.
-
 Run the local Gradio app:
 
 ```bash
@@ -144,6 +146,7 @@ The final app will:
 - Retrieve relevant chess corpus chunks from ChromaDB
 - Generate a sourced answer with an OpenAI LLM through LlamaIndex
 - Cite the source documents used in the answer
+- Keep simple conversational memory through the Gradio chat history
 
 ## Pipeline 5: Evaluation
 
