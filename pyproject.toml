@@ -26,7 +26,7 @@ dev = [
 [project.scripts]
 chess-tutor = "chess_tutor.app:main"
 chess-tutor-download = "chess_tutor.data_collection.download:main"
-chess-tutor-process = "chess_tutor.processing.documents:main"
+chess-tutor-process = "chess_tutor.data_processing.documents:main"
 chess-tutor-index = "chess_tutor.vector_store.index:build_index"
 chess-tutor-evaluate = "chess_tutor.evaluation.run:main"
 

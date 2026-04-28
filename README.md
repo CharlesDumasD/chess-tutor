@@ -190,7 +190,7 @@ src/chess_tutor/
   app.py                 Gradio UI entry point
   config.py              Environment and runtime settings
   data_collection/       Raw corpus download pipeline
-  processing/            Text cleaning and normalization
+  data_processing/       Text cleaning and normalization
   vector_store/          OpenAI embeddings and ChromaDB indexing
   rag/                   Prompting, retrieval, generation, and memory
   evaluation/            Golden dataset, retrieval metrics, generation metrics

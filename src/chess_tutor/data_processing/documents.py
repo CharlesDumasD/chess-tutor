@@ -60,6 +60,6 @@ def process_raw_texts() -> None:
 
 
 def main() -> None:
-    """Run the text processing pipeline."""
+    """Run the data processing pipeline."""
 
     process_raw_texts()
