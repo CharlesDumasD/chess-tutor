@@ -1,0 +1,39 @@
+[project]
+name = "chess-tutor"
+version = "0.1.0"
+description = "A RAG-powered chess tutor that answers strategic chess questions with sourced explanations."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "chromadb>=1.0.0",
+    "gradio>=5.0.0",
+    "llama-index>=0.13.0",
+    "llama-index-embeddings-openai>=0.5.0",
+    "llama-index-llms-openai>=0.5.0",
+    "llama-index-vector-stores-chroma>=0.5.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.0.0",
+    "flake8>=7.0.0",
+    "isort>=6.0.0",
+    "pre-commit>=4.0.0",
+]
+
+[project.scripts]
+chess-tutor = "chess_tutor.app:main"
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
