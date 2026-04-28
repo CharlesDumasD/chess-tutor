@@ -90,3 +90,30 @@ and use a low-cost model by default.
 Note: only public domain or properly licensed sources should be included in the
 repository. Copyrighted books should not be copied into the corpus unless their
 license explicitly allows it.
+
+## Codebase Structure
+
+```text
+src/chess_tutor/
+  app.py                 Gradio UI entry point
+  config.py              Environment and runtime settings
+  data_collection/       Source manifest and download pipeline
+  processing/            PDF/text extraction, cleaning, and chunking
+  vector_store/          OpenAI embeddings and ChromaDB indexing
+  rag/                   Prompting, retrieval, generation, and memory
+  evaluation/            Golden dataset, retrieval metrics, generation metrics
+data/
+  README.md              Data layout and source rules
+  raw/                   Downloaded source files (git ignored)
+  processed/             Extracted and cleaned text (git ignored)
+  generated/             IChunks, vector stores, and logs (git ignored)
+  eval/                  Golden datasets and evaluation reports (git tracked)
+```
+
+Pipeline commands will be added as the implementation grows:
+
+```bash
+uv run chess-tutor-download
+uv run chess-tutor-index
+uv run chess-tutor-evaluate
+```

@@ -13,7 +13,7 @@ class Settings:
     openai_api_key: str | None
     llm_model: str = "gpt-4.1-mini"
     embedding_model: str = "text-embedding-3-small"
-    persist_dir: str = "chroma_db"
+    persist_dir: str = "data/generated/chroma_db"
 
 
 def load_settings() -> Settings:
@@ -25,5 +25,5 @@ def load_settings() -> Settings:
         openai_api_key=getenv("OPENAI_API_KEY"),
         llm_model=getenv("OPENAI_LLM_MODEL", "gpt-4.1-mini"),
         embedding_model=getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
-        persist_dir=getenv("CHROMA_PERSIST_DIR", "chroma_db"),
+        persist_dir=getenv("CHROMA_PERSIST_DIR", "data/generated/chroma_db"),
     )

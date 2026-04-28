@@ -228,6 +228,7 @@ vectorstores/
 data/raw/
 data/processed/
 data/generated/
+data/eval/runs/
 
 # Local OS/editor files
 .DS_Store
