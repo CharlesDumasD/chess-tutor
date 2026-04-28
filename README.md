@@ -1,11 +1,11 @@
 # Chess Tutor
 
-A simple RAG-powered chess tutor for a GenAI engineering certification project.
+A RAG-powered chess tutor for a GenAI engineering certification project.
 
 The goal is to build an educational assistant that answers strategic chess
 questions from a curated chess corpus and cites the retrieved sources used in
-the answer. The first version will use Python, LlamaIndex, ChromaDB, OpenAI LLMs
-and embeddings, and a Gradio interface deployable on a public Hugging Face Space.
+the answer. The app will use Python, LlamaIndex, ChromaDB, OpenAI LLMs and
+embeddings, and a Gradio interface deployable on a public Hugging Face Space.
 
 ## Project Constraints
 
@@ -38,27 +38,109 @@ Then edit `.env` and add your OpenAI API key:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+Optional: install pre-commit hooks.
+
+```bash
+uv run pre-commit install
+```
+
+## Pipeline 1: Data Collection
+
+Download the raw corpus:
+
+```bash
+uv run chess-tutor-download
+```
+
+This downloads:
+
+- 6 Project Gutenberg chess books
+- 3 Internet Archive OCR text books
+- 107 curated Wikipedia chess articles
+
+Raw files are written to:
+
+```text
+data/raw/
+```
+
+Raw data is ignored by git. The downloader also writes provider-level metadata
+files with source URLs, licenses, local paths, collection timestamps, and any
+download errors.
+
+## Pipeline 2: Text Processing
+
+Status: not implemented yet.
+
+This step will clean the raw text files and write normalized files to:
+
+```text
+data/processed/
+```
+
+Expected processing:
+
+- Remove Project Gutenberg header/footer boilerplate
+- Clean obvious Internet Archive OCR artifacts
+- Keep Wikipedia text mostly as-is
+- Preserve source metadata for later citations
+
+## Pipeline 3: Vector Indexing
+
+Status: not implemented yet.
+
+This step will chunk the processed corpus, embed chunks with OpenAI embeddings,
+and store them in ChromaDB.
+
+Generated artifacts will be written to:
+
+```text
+data/generated/
+```
+
+The planned command is:
+
+```bash
+uv run chess-tutor-index
+```
+
+## Pipeline 4: RAG Tutor App
+
+Status: placeholder UI implemented; RAG engine not connected yet.
+
 Run the local Gradio app:
 
 ```bash
 uv run chess-tutor
 ```
 
-## Development
+The final app will:
 
-Install pre-commit hooks:
+- Let the user paste an OpenAI API key
+- Retrieve relevant chess corpus chunks from ChromaDB
+- Generate a sourced answer with an OpenAI LLM through LlamaIndex
+- Cite the source documents used in the answer
+
+## Pipeline 5: Evaluation
+
+Status: not implemented yet.
+
+The planned command is:
 
 ```bash
-uv run pre-commit install
+uv run chess-tutor-evaluate
 ```
 
-Run formatting and linting manually:
+The evaluation pipeline will use a small golden dataset in:
 
-```bash
-uv run black .
-uv run isort .
-uv run flake8 .
+```text
+data/eval/
 ```
+
+Planned evaluation:
+
+- Retrieval checks against expected source evidence
+- Generation checks for faithfulness, usefulness, and citation quality
 
 ## Cost Estimation
 
@@ -77,49 +159,25 @@ The exact cost depends on the selected OpenAI models, prompt length, retrieved
 context size, and answer length. The implementation should keep prompts compact
 and use a low-cost model by default.
 
-## Planned V1
-
-1. Collect public domain or openly licensed chess strategy material.
-2. Curate and chunk the corpus by theme, such as tactics, strategy, endgames,
-   and openings.
-3. Embed the chunks with OpenAI embeddings.
-4. Store and retrieve chunks with ChromaDB.
-5. Generate sourced answers with LlamaIndex and an OpenAI LLM.
-6. Expose the tutor through a Gradio UI on Hugging Face Spaces.
-
-Note: only public domain or properly licensed sources should be included in the
-repository. Copyrighted books should not be copied into the corpus unless their
-license explicitly allows it.
-
 ## Codebase Structure
 
 ```text
 src/chess_tutor/
   app.py                 Gradio UI entry point
   config.py              Environment and runtime settings
-  data_collection/       Source manifest and download pipeline
-  processing/            PDF/text extraction, cleaning, and chunking
+  data_collection/       Raw corpus download pipeline
+  processing/            Text cleaning and normalization
   vector_store/          OpenAI embeddings and ChromaDB indexing
   rag/                   Prompting, retrieval, generation, and memory
   evaluation/            Golden dataset, retrieval metrics, generation metrics
 data/
   README.md              Data layout and source rules
   raw/                   Downloaded source files (git ignored)
-  processed/             Extracted and cleaned text (git ignored)
+  processed/             Cleaned text files (git ignored)
   generated/             Chunks, vector stores, and logs (git ignored)
   eval/                  Golden datasets and evaluation reports (git tracked)
 ```
 
-Pipeline commands will be added as the implementation grows:
-
-```bash
-uv run chess-tutor-download
-uv run chess-tutor-index
-uv run chess-tutor-evaluate
-```
-
-Download the six Project Gutenberg books:
-
-```bash
-uv run chess-tutor-download
-```
+Note: only public domain or properly licensed sources should be included in the
+repository. Copyrighted books should not be copied into the corpus unless their
+license explicitly allows it.
