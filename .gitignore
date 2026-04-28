@@ -216,3 +216,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-local secrets and generated artifacts
+.env.*
+!.env.example
+chroma/
+chroma_db/
+faiss_index/
+vectorstore/
+vectorstores/
+data/raw/
+data/processed/
+data/generated/
+
+# Local OS/editor files
+.DS_Store
+Thumbs.db
