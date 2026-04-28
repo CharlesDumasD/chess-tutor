@@ -2,7 +2,6 @@
 
 import gradio as gr
 
-from chess_tutor.config import load_settings
 from chess_tutor.rag.engine import answer_question
 
 
@@ -29,8 +28,6 @@ def respond(question: str, history: list[dict[str, str]], api_key: str):
 def build_demo() -> gr.Blocks:
     """Build the Hugging Face Spaces-compatible Gradio interface."""
 
-    settings = load_settings()
-
     with gr.Blocks(title="Chess Tutor") as demo:
         gr.Markdown("# Chess Tutor")
         gr.Markdown(
@@ -41,10 +38,13 @@ def build_demo() -> gr.Blocks:
         api_key = gr.Textbox(
             label="OpenAI API key",
             type="password",
-            value=settings.openai_api_key or "",
             placeholder="sk-...",
+            info=(
+                "Used only to call OpenAI for your current chat session; "
+                "not stored by this app."
+            ),
         )
-        chatbot = gr.Chatbot(type="messages", label="Conversation")
+        chatbot = gr.Chatbot(label="Conversation")
         question = gr.Textbox(
             label="Question",
             lines=4,

@@ -38,6 +38,12 @@ Then edit `.env` and add your OpenAI API key:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+The local `.env` key is used by backend pipeline commands such as indexing.
+The Gradio app also includes a password field where users can paste their own
+OpenAI API key. That UI key is passed to the backend only to call OpenAI for the
+current chat session; the app does not log it, write it to files, or store it in
+conversation history.
+
 Optional: install pre-commit hooks.
 
 ```bash
