@@ -1,6 +1,7 @@
 """Source metadata models for chess corpus collection."""
 
 from dataclasses import dataclass
+from urllib.parse import quote, urlencode
 
 
 @dataclass(frozen=True)
@@ -136,3 +137,174 @@ INTERNET_ARCHIVE_SOURCES = [
         notes="Wikimedia Commons public-domain PDF; text from Internet Archive OCR.",
     ),
 ]
+
+
+WIKIPEDIA_ARTICLE_TITLES = {
+    "core": [
+        "Chess",
+        "Rules of chess",
+        "Chess notation",
+        "Algebraic notation (chess)",
+        "Forsyth–Edwards Notation",
+        "Chess title",
+        "Elo rating system",
+        "Chess clock",
+        "Time control",
+        "Draw (chess)",
+        "Checkmate",
+        "Stalemate",
+        "Castling",
+        "Promotion (chess)",
+        "En passant",
+    ],
+    "strategy": [
+        "Chess strategy",
+        "Pawn structure",
+        "Isolated pawn",
+        "Doubled pawns",
+        "Backward pawn",
+        "Passed pawn",
+        "Pawn majority",
+        "Pawn chain",
+        "Hanging pawns",
+        "Minority attack",
+        "Open file",
+        "Half-open file",
+        "Outpost (chess)",
+        "Space (chess)",
+        "Tempo (chess)",
+        "Initiative (chess)",
+        "Prophylaxis (chess)",
+        "Zugzwang",
+        "Fianchetto",
+        "Center (chess)",
+    ],
+    "tactics": [
+        "Chess tactic",
+        "Fork (chess)",
+        "Pin (chess)",
+        "Skewer (chess)",
+        "Discovered attack",
+        "Discovered check",
+        "Double check",
+        "Battery (chess)",
+        "Deflection (chess)",
+        "Decoy (chess)",
+        "Interference (chess)",
+        "Overloading (chess)",
+        "X-ray (chess)",
+        "Windmill (chess)",
+        "Clearance sacrifice",
+        "Sacrifice (chess)",
+        "Combination (chess)",
+        "Zwischenzug",
+        "Perpetual check",
+    ],
+    "endgames": [
+        "Chess endgame",
+        "Pawnless chess endgame",
+        "King and pawn versus king endgame",
+        "Opposition (chess)",
+        "Key square",
+        "Lucena position",
+        "Philidor position",
+        "Rook and pawn versus rook endgame",
+        "Queen versus pawn endgame",
+        "Wrong rook pawn",
+        "Triangulation (chess)",
+        "Fortress (chess)",
+        "Endgame tablebase",
+        "Fifty-move rule",
+        "Threefold repetition",
+    ],
+    "openings": [
+        "Chess opening",
+        "List of chess openings",
+        "Open Game",
+        "Semi-Open Game",
+        "Closed Game",
+        "Semi-Closed Game",
+        "Flank opening",
+        "King's Pawn Game",
+        "Queen's Pawn Game",
+        "Sicilian Defence",
+        "French Defence",
+        "Caro-Kann Defence",
+        "Pirc Defence",
+        "Modern Defense",
+        "Alekhine's Defence",
+        "Scandinavian Defense",
+        "Ruy Lopez",
+        "Italian Game",
+        "Scotch Game",
+        "Four Knights Game",
+        "Petrov's Defence",
+        "King's Gambit",
+        "Queen's Gambit",
+        "Queen's Gambit Accepted",
+        "Queen's Gambit Declined",
+        "Slav Defense",
+        "Semi-Slav Defense",
+        "Nimzo-Indian Defence",
+        "Queen's Indian Defense",
+        "King's Indian Defence",
+        "Grünfeld Defence",
+        "Benoni Defense",
+        "Dutch Defence",
+        "English Opening",
+        "Réti Opening",
+        "Catalan Opening",
+        "London System",
+        "King's Indian Attack",
+    ],
+}
+
+
+def wikipedia_filename(title: str) -> str:
+    """Return a stable local filename for a Wikipedia article title."""
+
+    filename = title.lower()
+    filename = filename.replace("'", "")
+    filename = filename.replace("(", "")
+    filename = filename.replace(")", "")
+    filename = filename.replace("-", "_")
+    filename = filename.replace(" ", "_")
+    return f"{filename}.txt"
+
+
+def build_wikipedia_sources() -> list[Source]:
+    """Build Source objects from the curated Wikipedia article titles."""
+
+    sources = []
+
+    for theme, titles in WIKIPEDIA_ARTICLE_TITLES.items():
+        for title in titles:
+            encoded_title = quote(title.replace(" ", "_"), safe="")
+            query = urlencode(
+                {
+                    "action": "query",
+                    "format": "json",
+                    "prop": "extracts",
+                    "explaintext": "1",
+                    "redirects": "1",
+                    "titles": title,
+                }
+            )
+            sources.append(
+                Source(
+                    source_id=title,
+                    provider="wikipedia",
+                    author="Wikipedia contributors",
+                    title=title,
+                    license_name="CC BY-SA 4.0",
+                    source_url=f"https://en.wikipedia.org/wiki/{encoded_title}",
+                    download_url=f"https://en.wikipedia.org/w/api.php?{query}",
+                    filename=wikipedia_filename(title),
+                    notes=f"Curated Wikipedia article for theme: {theme}.",
+                )
+            )
+
+    return sources
+
+
+WIKIPEDIA_SOURCES = build_wikipedia_sources()
