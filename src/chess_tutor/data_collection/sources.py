@@ -85,3 +85,38 @@ GUTENBERG_SOURCES = [
         filename="55278_chess_generalship_vol_1.txt",
     ),
 ]
+
+
+INTERNET_ARCHIVE_SOURCES = [
+    Source(
+        source_id="commonsenseinche00laskrich",
+        provider="internet_archive",
+        author="Emanuel Lasker",
+        title="Common Sense in Chess",
+        license_name="NOT_IN_COPYRIGHT",
+        source_url="https://archive.org/details/commonsenseinche00laskrich",
+        download_url=(
+            "https://archive.org/stream/commonsenseinche00laskrich/"
+            "commonsenseinche00laskrich_djvu.txt"
+        ),
+        filename="commonsenseinche00laskrich_common_sense_in_chess.txt",
+        notes="Internet Archive full text generated from OCR.",
+    ),
+    Source(
+        source_id="dli.ministry.13269",
+        provider="internet_archive",
+        author="Siegbert Tarrasch",
+        title=(
+            "The Game of Chess: A Systematic Text Book for Beginners and More "
+            "Experienced Players"
+        ),
+        license_name="Verify before redistribution",
+        source_url="https://archive.org/details/dli.ministry.13269",
+        download_url=(
+            "https://archive.org/stream/dli.ministry.13269/"
+            "E05421_The_Game_Of_Chess_djvu.txt"
+        ),
+        filename="dli_ministry_13269_the_game_of_chess.txt",
+        notes="Internet Archive full text generated from OCR.",
+    ),
+]
