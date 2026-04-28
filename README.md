@@ -106,7 +106,7 @@ data/
   README.md              Data layout and source rules
   raw/                   Downloaded source files (git ignored)
   processed/             Extracted and cleaned text (git ignored)
-  generated/             IChunks, vector stores, and logs (git ignored)
+  generated/             Chunks, vector stores, and logs (git ignored)
   eval/                  Golden datasets and evaluation reports (git tracked)
 ```
 
@@ -116,4 +116,10 @@ Pipeline commands will be added as the implementation grows:
 uv run chess-tutor-download
 uv run chess-tutor-index
 uv run chess-tutor-evaluate
+```
+
+Download the six Project Gutenberg books:
+
+```bash
+uv run chess-tutor-download
 ```
