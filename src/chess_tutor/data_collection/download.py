@@ -27,7 +27,7 @@ USER_AGENT = "chess-tutor/0.1 educational RAG project"
 def download_text(source: Source, destination: Path) -> str:
     """Download one UTF-8 text file."""
 
-    if destination.exists():
+    if destination.exists() and not looks_like_html(destination):
         return "skipped"
 
     request = Request(source.download_url, headers={"User-Agent": USER_AGENT})
@@ -37,6 +37,13 @@ def download_text(source: Source, destination: Path) -> str:
 
     destination.write_text(text, encoding="utf-8")
     return "downloaded"
+
+
+def looks_like_html(path: Path) -> bool:
+    """Return True if a saved text file is actually an HTML page."""
+
+    start = path.read_text(encoding="utf-8", errors="ignore")[:500].lower()
+    return "<!doctype html" in start or "<html" in start
 
 
 def download_wikipedia_text(source: Source, destination: Path) -> str:

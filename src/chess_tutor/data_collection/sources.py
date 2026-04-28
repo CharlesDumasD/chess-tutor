@@ -97,7 +97,7 @@ INTERNET_ARCHIVE_SOURCES = [
         license_name="NOT_IN_COPYRIGHT",
         source_url="https://archive.org/details/commonsenseinche00laskrich",
         download_url=(
-            "https://archive.org/stream/commonsenseinche00laskrich/"
+            "https://archive.org/download/commonsenseinche00laskrich/"
             "commonsenseinche00laskrich_djvu.txt"
         ),
         filename="commonsenseinche00laskrich_common_sense_in_chess.txt",
@@ -114,7 +114,7 @@ INTERNET_ARCHIVE_SOURCES = [
         license_name="Verify before redistribution",
         source_url="https://archive.org/details/dli.ministry.13269",
         download_url=(
-            "https://archive.org/stream/dli.ministry.13269/"
+            "https://archive.org/download/dli.ministry.13269/"
             "E05421_The_Game_Of_Chess_djvu.txt"
         ),
         filename="dli_ministry_13269_the_game_of_chess.txt",
@@ -131,7 +131,7 @@ INTERNET_ARCHIVE_SOURCES = [
             "File:Lasker_(1927)_-_Manual_of_Chess.pdf"
         ),
         download_url=(
-            "https://archive.org/stream/bwb_S0-CIH-670/" "bwb_S0-CIH-670_djvu.txt"
+            "https://archive.org/download/bwb_S0-CIH-670/" "bwb_S0-CIH-670_djvu.txt"
         ),
         filename="bwb_s0_cih_670_laskers_manual_of_chess.txt",
         notes="Wikimedia Commons public-domain PDF; text from Internet Archive OCR.",
