@@ -91,8 +91,6 @@ uv run chess-tutor-process
 
 ## Pipeline 3: Vector Indexing
 
-Status: not implemented yet.
-
 This step will chunk the processed corpus, embed chunks with OpenAI embeddings,
 and store them in ChromaDB.
 
@@ -102,11 +100,33 @@ Generated artifacts will be written to:
 data/generated/
 ```
 
-The planned command is:
+Run the indexing pipeline:
 
 ```bash
 uv run chess-tutor-index
 ```
+
+The index command rebuilds the local ChromaDB collection each time, which keeps
+the pipeline simple and avoids duplicate chunks while iterating.
+
+Pipeline settings are loaded from `src/chess_tutor/config.py`. The `Settings`
+dataclass defines the default values used by the app, including:
+
+- embedding model
+- LLM model
+- processed data directory
+- ChromaDB persist directory and collection name
+- chunk size and overlap
+- embedding cost estimate and maximum allowed indexing cost
+
+For experiments, change the defaults in `config.py`. For local secrets or
+machine-specific overrides, add environment variables to `.env`; `load_settings()`
+loads `.env` and lets environment variables override the defaults.
+
+The default embedding cost estimate uses OpenAI's published
+`text-embedding-3-small` price of USD 0.02 per 1M tokens.
+If the estimated embedding cost is above `max_embedding_cost_usd`, the index
+command stops before calling the OpenAI API. The default limit is USD 0.50.
 
 ## Pipeline 4: RAG Tutor App
 

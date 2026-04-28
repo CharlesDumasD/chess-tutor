@@ -1,1 +1,1 @@
-"""Document processing and chunking pipeline."""
+"""Text processing pipeline."""
