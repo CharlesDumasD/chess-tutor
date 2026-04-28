@@ -70,20 +70,24 @@ download errors.
 
 ## Pipeline 2: Text Processing
 
-Status: not implemented yet.
-
 This step will clean the raw text files and write normalized files to:
 
 ```text
 data/processed/
 ```
 
-Expected processing:
+Processing includes:
 
 - Remove Project Gutenberg header/footer boilerplate
-- Clean obvious Internet Archive OCR artifacts
+- Normalize whitespace
 - Keep Wikipedia text mostly as-is
 - Preserve source metadata for later citations
+
+Run the processing pipeline:
+
+```bash
+uv run chess-tutor-process
+```
 
 ## Pipeline 3: Vector Indexing
 
