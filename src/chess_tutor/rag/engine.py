@@ -78,6 +78,23 @@ def format_history(history: ChatHistory) -> str:
     return "\n".join(lines)
 
 
+def build_retrieval_query(question: str, history: ChatHistory) -> str:
+    """Build a retrieval query that includes recent conversation context."""
+
+    conversation_history = format_history(history)
+
+    if conversation_history == "No previous messages.":
+        return question
+
+    return f"""\
+Recent conversation:
+{conversation_history}
+
+Current question:
+{question}
+"""
+
+
 def format_sources(retrieved_nodes) -> str:
     """Format retrieved source list for display after the answer."""
 
@@ -115,7 +132,8 @@ def stream_answer(
         return
 
     retriever = load_retriever(api_key)
-    retrieved_nodes = retriever.retrieve(question)
+    retrieval_query = build_retrieval_query(question, history)
+    retrieved_nodes = retriever.retrieve(retrieval_query)
     context = format_context(retrieved_nodes)
     conversation_history = format_history(history)
 
