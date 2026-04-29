@@ -1,5 +1,6 @@
 """RAG engine wiring retrieval, prompting, and generation."""
 
+from collections.abc import Generator
 from pathlib import Path
 
 import chromadb
@@ -95,21 +96,23 @@ def format_sources(retrieved_nodes) -> str:
     return "\n".join(lines)
 
 
-def answer_question(
+def stream_answer(
     question: str,
     api_key: str,
     history: ChatHistory | None = None,
-) -> str:
-    """Answer a chess question using the RAG pipeline."""
+) -> Generator[str]:
+    """Stream an answer to a chess question using the RAG pipeline."""
 
     settings = load_settings()
     history = history or []
 
     if not api_key.strip():
-        return "Please paste your OpenAI API key before asking a question."
+        yield "Please paste your OpenAI API key before asking a question."
+        return
 
     if not question.strip():
-        return "Ask a chess strategy question to get started."
+        yield "Ask a chess strategy question to get started."
+        return
 
     retriever = load_retriever(api_key)
     retrieved_nodes = retriever.retrieve(question)
@@ -132,14 +135,19 @@ User question:
         api_key=api_key,
         temperature=settings.llm_temperature,
     )
-    response = llm.chat(
-        [
-            ChatMessage(
-                role=MessageRole.SYSTEM,
-                content=CHESS_TUTOR_SYSTEM_PROMPT,
-            ),
-            ChatMessage(role=MessageRole.USER, content=user_prompt),
-        ]
-    )
 
-    return (response.message.content or "") + format_sources(retrieved_nodes)
+    messages = [
+        ChatMessage(
+            role=MessageRole.SYSTEM,
+            content=CHESS_TUTOR_SYSTEM_PROMPT,
+        ),
+        ChatMessage(role=MessageRole.USER, content=user_prompt),
+    ]
+
+    answer = ""
+    for response in llm.stream_chat(messages):
+        if response.delta:
+            answer += response.delta
+            yield answer
+
+    yield answer + format_sources(retrieved_nodes)

@@ -2,27 +2,31 @@
 
 import gradio as gr
 
-from chess_tutor.rag.engine import answer_question
+from chess_tutor.rag.engine import stream_answer
 
 
 def respond(question: str, history: list[dict[str, str]], api_key: str):
-    """Answer a question and update the visible chat history."""
+    """Stream an answer and update the visible chat history."""
 
     history = history or []
 
     if not question.strip():
-        return history, ""
-
-    try:
-        answer = answer_question(question, api_key, history)
-    except Exception as error:
-        answer = f"Something went wrong: {error}"
+        yield history, ""
+        return
 
     history = history + [
         {"role": "user", "content": question},
-        {"role": "assistant", "content": answer},
+        {"role": "assistant", "content": ""},
     ]
-    return history, ""
+    yield history, ""
+
+    try:
+        for partial_answer in stream_answer(question, api_key, history[:-2]):
+            history[-1]["content"] = partial_answer
+            yield history, ""
+    except Exception as error:
+        history[-1]["content"] = f"Something went wrong: {error}"
+        yield history, ""
 
 
 def build_demo() -> gr.Blocks:
