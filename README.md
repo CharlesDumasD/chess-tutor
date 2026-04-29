@@ -154,20 +154,39 @@ The final app will:
 - Cite the source documents used in the answer
 - Keep simple conversational memory through the Gradio chat history
 
-## Pipeline 5: Evaluation
+## Pipeline 5: Evaluation Dataset
+
+Create a small golden dataset of evaluation questions:
+
+```bash
+uv run chess-tutor-generate-eval-dataset
+```
+
+This command loads chunks from the current ChromaDB index and generates one
+question for a small deterministic sample of chunks. The result is saved to:
+
+```text
+data/eval/golden_dataset.jsonl
+```
+
+If the dataset already exists, the command stops without regenerating it. This
+keeps evaluation runs comparable and avoids unnecessary OpenAI API calls.
+
+Evaluation settings are loaded from `config.py`:
+
+- `eval_dataset_path`
+- `eval_sample_size`
+- `eval_random_seed`
+
+## Pipeline 6: Evaluation Metrics
 
 Status: not implemented yet.
 
-The planned command is:
+The planned commands are:
 
 ```bash
-uv run chess-tutor-evaluate
-```
-
-The evaluation pipeline will use a small golden dataset in:
-
-```text
-data/eval/
+uv run chess-tutor-eval-retriever
+uv run chess-tutor-eval-generator
 ```
 
 Planned evaluation:

@@ -28,6 +28,7 @@ chess-tutor = "chess_tutor.app:main"
 chess-tutor-download = "chess_tutor.data_collection.download:main"
 chess-tutor-process = "chess_tutor.data_processing.documents:main"
 chess-tutor-index = "chess_tutor.vector_store.index:build_index"
+chess-tutor-generate-eval-dataset = "chess_tutor.evaluation.golden_dataset:main"
 chess-tutor-evaluate = "chess_tutor.evaluation.run:main"
 
 [build-system]
