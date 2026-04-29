@@ -12,6 +12,7 @@ class Settings:
 
     openai_api_key: str | None
     llm_model: str = "gpt-4.1-mini"
+    eval_llm_model: str = "gpt-4.1-mini"
     embedding_model: str = "text-embedding-3-small"
     persist_dir: str = "data/generated/chroma_db"
     processed_dir: str = "data/processed"
@@ -27,6 +28,7 @@ class Settings:
     eval_runs_dir: str = "data/eval/runs"
     eval_sample_size: int = 100
     eval_random_seed: int = 7
+    eval_generator_sample_size: int = 20
 
 
 def load_settings() -> Settings:
@@ -38,6 +40,7 @@ def load_settings() -> Settings:
     return Settings(
         openai_api_key=getenv("OPENAI_API_KEY"),
         llm_model=getenv("OPENAI_LLM_MODEL", defaults.llm_model),
+        eval_llm_model=getenv("OPENAI_EVAL_LLM_MODEL", defaults.eval_llm_model),
         embedding_model=getenv("OPENAI_EMBEDDING_MODEL", defaults.embedding_model),
         persist_dir=getenv("CHROMA_PERSIST_DIR", defaults.persist_dir),
         processed_dir=getenv("PROCESSED_DATA_DIR", defaults.processed_dir),
@@ -71,5 +74,11 @@ def load_settings() -> Settings:
         ),
         eval_random_seed=int(
             getenv("EVAL_RANDOM_SEED", str(defaults.eval_random_seed))
+        ),
+        eval_generator_sample_size=int(
+            getenv(
+                "EVAL_GENERATOR_SAMPLE_SIZE",
+                str(defaults.eval_generator_sample_size),
+            )
         ),
     )

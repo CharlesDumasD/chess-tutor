@@ -175,25 +175,40 @@ keeps evaluation runs comparable and avoids unnecessary OpenAI API calls.
 Evaluation settings are loaded from `config.py`:
 
 - `eval_dataset_path`
+- `eval_llm_model`
 - `eval_runs_dir`
 - `eval_sample_size`
 - `eval_random_seed`
+- `eval_generator_sample_size`
 
 ## Pipeline 6: Evaluation Metrics
 
-Status: not implemented yet.
-
-The planned commands are:
+Run retriever evaluation:
 
 ```bash
 uv run chess-tutor-eval-retriever
+```
+
+This computes hit rate and MRR by checking whether the retriever returns the
+expected source chunk from the golden dataset.
+
+Run generator evaluation:
+
+```bash
 uv run chess-tutor-eval-generator
 ```
 
-Planned evaluation:
+This samples a smaller subset of the golden dataset, generates answers with the
+current RAG pipeline, and scores them with LlamaIndex evaluators:
 
 - Retrieval checks against expected source evidence with hit rate and MRR
-- Generation checks for faithfulness, usefulness, and citation quality
+- Generation checks for faithfulness and relevancy
+
+Evaluation run summaries are written to:
+
+```text
+data/eval/runs/
+```
 
 ## Cost Estimation
 

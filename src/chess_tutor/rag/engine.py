@@ -95,6 +95,51 @@ Current question:
 """
 
 
+def retrieve_nodes(question: str, api_key: str, history: ChatHistory | None = None):
+    """Retrieve relevant chunks for a question."""
+
+    history = history or []
+    retriever = load_retriever(api_key)
+    retrieval_query = build_retrieval_query(question, history)
+
+    return retriever.retrieve(retrieval_query)
+
+
+def build_user_prompt(
+    question: str,
+    retrieved_nodes,
+    history: ChatHistory | None = None,
+) -> str:
+    """Build the user prompt for answer generation."""
+
+    history = history or []
+    context = format_context(retrieved_nodes)
+    conversation_history = format_history(history)
+
+    return f"""\
+Conversation history:
+{conversation_history}
+
+Retrieved sources:
+{context}
+
+User question:
+{question}
+"""
+
+
+def build_messages(user_prompt: str) -> list[ChatMessage]:
+    """Build chat messages for the chess tutor LLM."""
+
+    return [
+        ChatMessage(
+            role=MessageRole.SYSTEM,
+            content=CHESS_TUTOR_SYSTEM_PROMPT,
+        ),
+        ChatMessage(role=MessageRole.USER, content=user_prompt),
+    ]
+
+
 def format_sources(retrieved_nodes) -> str:
     """Format a deduplicated source list for display after the answer."""
 
@@ -129,6 +174,36 @@ def format_sources(retrieved_nodes) -> str:
     return "\n".join(lines)
 
 
+def generate_answer(
+    question: str,
+    api_key: str,
+    history: ChatHistory | None = None,
+) -> tuple[str, list]:
+    """Generate a non-streaming answer and return the retrieved nodes."""
+
+    settings = load_settings()
+    history = history or []
+
+    if not api_key.strip():
+        raise ValueError("Please paste your OpenAI API key before asking a question.")
+
+    if not question.strip():
+        raise ValueError("Ask a chess strategy question to get started.")
+
+    retrieved_nodes = retrieve_nodes(question, api_key, history)
+    user_prompt = build_user_prompt(question, retrieved_nodes, history)
+
+    llm = OpenAI(
+        model=settings.llm_model,
+        api_key=api_key,
+        temperature=settings.llm_temperature,
+    )
+    response = llm.chat(build_messages(user_prompt))
+    answer = str(response.message.content)
+
+    return answer, retrieved_nodes
+
+
 def stream_answer(
     question: str,
     api_key: str,
@@ -147,22 +222,8 @@ def stream_answer(
         yield "Ask a chess strategy question to get started."
         return
 
-    retriever = load_retriever(api_key)
-    retrieval_query = build_retrieval_query(question, history)
-    retrieved_nodes = retriever.retrieve(retrieval_query)
-    context = format_context(retrieved_nodes)
-    conversation_history = format_history(history)
-
-    user_prompt = f"""\
-Conversation history:
-{conversation_history}
-
-Retrieved sources:
-{context}
-
-User question:
-{question}
-"""
+    retrieved_nodes = retrieve_nodes(question, api_key, history)
+    user_prompt = build_user_prompt(question, retrieved_nodes, history)
 
     llm = OpenAI(
         model=settings.llm_model,
@@ -170,13 +231,7 @@ User question:
         temperature=settings.llm_temperature,
     )
 
-    messages = [
-        ChatMessage(
-            role=MessageRole.SYSTEM,
-            content=CHESS_TUTOR_SYSTEM_PROMPT,
-        ),
-        ChatMessage(role=MessageRole.USER, content=user_prompt),
-    ]
+    messages = build_messages(user_prompt)
 
     answer = ""
     for response in llm.stream_chat(messages):
