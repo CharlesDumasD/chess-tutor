@@ -96,19 +96,35 @@ Current question:
 
 
 def format_sources(retrieved_nodes) -> str:
-    """Format retrieved source list for display after the answer."""
+    """Format a deduplicated source list for display after the answer."""
 
     lines = ["\n\nSources:"]
+    sources = {}
 
     for index, result in enumerate(retrieved_nodes, start=1):
         metadata = result.node.metadata
         title = metadata.get("title", "Untitled source")
         source_url = metadata.get("source_url", "")
+        source_key = source_url or title
+
+        if source_key not in sources:
+            sources[source_key] = {
+                "title": title,
+                "source_url": source_url,
+                "chunk_numbers": [],
+            }
+
+        sources[source_key]["chunk_numbers"].append(f"[{index}]")
+
+    for source in sources.values():
+        chunk_numbers = ", ".join(source["chunk_numbers"])
+        title = source["title"]
+        source_url = source["source_url"]
 
         if source_url:
-            lines.append(f"[{index}] {title}: {source_url}")
+            lines.append(f"- {title} ({chunk_numbers}): {source_url}")
         else:
-            lines.append(f"[{index}] {title}")
+            lines.append(f"- {title} ({chunk_numbers})")
 
     return "\n".join(lines)
 
