@@ -201,7 +201,7 @@ src/chess_tutor/
   data_collection/       Raw corpus download pipeline
   data_processing/       Text cleaning and normalization
   vector_store/          OpenAI embeddings and ChromaDB indexing
-  rag/                   Prompting, retrieval, generation, and memory
+  rag/                   Prompting, retrieval, generation, and chat history
   evaluation/            Golden dataset, retrieval metrics, generation metrics
 data/
   README.md              Data layout and source rules
