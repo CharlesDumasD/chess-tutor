@@ -175,6 +175,7 @@ keeps evaluation runs comparable and avoids unnecessary OpenAI API calls.
 Evaluation settings are loaded from `config.py`:
 
 - `eval_dataset_path`
+- `eval_runs_dir`
 - `eval_sample_size`
 - `eval_random_seed`
 
@@ -191,7 +192,7 @@ uv run chess-tutor-eval-generator
 
 Planned evaluation:
 
-- Retrieval checks against expected source evidence
+- Retrieval checks against expected source evidence with hit rate and MRR
 - Generation checks for faithfulness, usefulness, and citation quality
 
 ## Cost Estimation

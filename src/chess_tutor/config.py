@@ -24,6 +24,7 @@ class Settings:
     max_history_messages: int = 6
     llm_temperature: float = 0.2
     eval_dataset_path: str = "data/eval/golden_dataset.jsonl"
+    eval_runs_dir: str = "data/eval/runs"
     eval_sample_size: int = 100
     eval_random_seed: int = 7
 
@@ -64,6 +65,7 @@ def load_settings() -> Settings:
             getenv("OPENAI_LLM_TEMPERATURE", str(defaults.llm_temperature))
         ),
         eval_dataset_path=getenv("EVAL_DATASET_PATH", defaults.eval_dataset_path),
+        eval_runs_dir=getenv("EVAL_RUNS_DIR", defaults.eval_runs_dir),
         eval_sample_size=int(
             getenv("EVAL_SAMPLE_SIZE", str(defaults.eval_sample_size))
         ),
