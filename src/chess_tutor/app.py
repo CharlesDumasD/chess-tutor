@@ -65,6 +65,7 @@ def build_chatbot() -> gr.Chatbot:
 def build_demo() -> gr.Blocks:
     """Build the Hugging Face Spaces-compatible Gradio interface."""
 
+    download_vector_store_if_missing()
     with gr.Blocks(title="Chess Tutor") as demo:
         gr.Markdown("# Chess Tutor")
         gr.Markdown(
@@ -112,7 +113,6 @@ def build_demo() -> gr.Blocks:
 def main() -> None:
     """Launch the local Gradio app."""
 
-    download_vector_store_if_missing()
     build_demo().launch()
 
 
