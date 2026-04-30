@@ -72,7 +72,7 @@ def build_demo() -> gr.Blocks:
                 "not stored by this app."
             ),
         )
-        chatbot = gr.Chatbot(label="Conversation")
+        chatbot = gr.Chatbot(label="Conversation", type="messages")
         question = gr.Textbox(
             label="Question",
             lines=4,
