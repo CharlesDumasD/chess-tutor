@@ -27,7 +27,7 @@ GUTENBERG_SOURCES = [
         title="Chess Fundamentals",
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/33870",
-        download_url="https://www.gutenberg.org/ebooks/33870.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/33870/pg33870.txt",
         filename="33870_chess_fundamentals.txt",
     ),
     Source(
@@ -37,7 +37,7 @@ GUTENBERG_SOURCES = [
         title="Chess Strategy",
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/5614",
-        download_url="https://www.gutenberg.org/ebooks/5614.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/5614/pg5614.txt",
         filename="5614_chess_strategy.txt",
         notes="Translated by J. Du Mont.",
     ),
@@ -48,7 +48,7 @@ GUTENBERG_SOURCES = [
         title="Chess and Checkers: The Way to Mastership",
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/4913",
-        download_url="https://www.gutenberg.org/ebooks/4913.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/4913/pg4913.txt",
         filename="4913_chess_and_checkers.txt",
         notes="Includes checkers material as well as chess.",
     ),
@@ -62,7 +62,7 @@ GUTENBERG_SOURCES = [
         ),
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/16377",
-        download_url="https://www.gutenberg.org/ebooks/16377.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/16377/pg16377.txt",
         filename="16377_blue_book_of_chess.txt",
     ),
     Source(
@@ -72,7 +72,7 @@ GUTENBERG_SOURCES = [
         title="Chess History and Reminiscences",
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/4902",
-        download_url="https://www.gutenberg.org/ebooks/4902.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/4902/pg4902.txt",
         filename="4902_chess_history_and_reminiscences.txt",
     ),
     Source(
@@ -82,7 +82,7 @@ GUTENBERG_SOURCES = [
         title="Chess Generalship, Vol. I. Grand Reconnaissance",
         license_name="Public domain in the USA",
         source_url="https://www.gutenberg.org/ebooks/55278",
-        download_url="https://www.gutenberg.org/ebooks/55278.txt.utf-8",
+        download_url="https://www.gutenberg.org/cache/epub/55278/pg55278.txt",
         filename="55278_chess_generalship_vol_1.txt",
     ),
 ]
@@ -101,23 +101,6 @@ INTERNET_ARCHIVE_SOURCES = [
             "commonsenseinche00laskrich_djvu.txt"
         ),
         filename="commonsenseinche00laskrich_common_sense_in_chess.txt",
-        notes="Internet Archive full text generated from OCR.",
-    ),
-    Source(
-        source_id="dli.ministry.13269",
-        provider="internet_archive",
-        author="Siegbert Tarrasch",
-        title=(
-            "The Game of Chess: A Systematic Text Book for Beginners and More "
-            "Experienced Players"
-        ),
-        license_name="Verify before redistribution",
-        source_url="https://archive.org/details/dli.ministry.13269",
-        download_url=(
-            "https://archive.org/download/dli.ministry.13269/"
-            "E05421_The_Game_Of_Chess_djvu.txt"
-        ),
-        filename="dli_ministry_13269_the_game_of_chess.txt",
         notes="Internet Archive full text generated from OCR.",
     ),
     Source(

@@ -96,6 +96,17 @@ def write_metadata(records: list[dict[str, str]], metadata_file: Path) -> None:
     )
 
 
+def print_record_status(record: dict[str, str], destination: Path) -> None:
+    """Print one download status line."""
+
+    message = f"{record['status']}: {destination}"
+
+    if record["error"]:
+        message = f"{message} ({record['error']})"
+
+    print(message)
+
+
 def download_gutenberg_books() -> None:
     """Download the six Project Gutenberg books used in the corpus."""
 
@@ -110,7 +121,7 @@ def download_gutenberg_books() -> None:
         except (HTTPError, URLError, RuntimeError) as error:
             record = build_metadata_record(source, destination, "failed", str(error))
         records.append(record)
-        print(f"{record['status']}: {destination}")
+        print_record_status(record, destination)
         sleep(1)
 
     write_metadata(records, GUTENBERG_METADATA_FILE)
@@ -131,7 +142,7 @@ def download_internet_archive_books() -> None:
         except (HTTPError, URLError, RuntimeError) as error:
             record = build_metadata_record(source, destination, "failed", str(error))
         records.append(record)
-        print(f"{record['status']}: {destination}")
+        print_record_status(record, destination)
         sleep(1)
 
     write_metadata(records, INTERNET_ARCHIVE_METADATA_FILE)
@@ -152,7 +163,7 @@ def download_wikipedia_articles() -> None:
         except (HTTPError, URLError, RuntimeError, KeyError, StopIteration) as error:
             record = build_metadata_record(source, destination, "failed", str(error))
         records.append(record)
-        print(f"{record['status']}: {destination}")
+        print_record_status(record, destination)
         sleep(0.2)
 
     write_metadata(records, WIKIPEDIA_METADATA_FILE)

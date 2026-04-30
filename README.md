@@ -16,7 +16,7 @@ The tutor answers chess strategy, opening, tactic, and endgame questions from a
 curated text corpus:
 
 - 6 public-domain Project Gutenberg chess books
-- 3 Internet Archive OCR chess books
+- 2 Internet Archive OCR chess books
 - 107 curated Wikipedia chess articles
 
 The data pipeline downloads raw text, cleans it into processed text files, chunks
