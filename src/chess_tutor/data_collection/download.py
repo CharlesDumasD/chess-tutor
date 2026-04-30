@@ -22,6 +22,46 @@ INTERNET_ARCHIVE_METADATA_FILE = INTERNET_ARCHIVE_RAW_DIR / "metadata.json"
 WIKIPEDIA_RAW_DIR = Path("data/raw/wikipedia")
 WIKIPEDIA_METADATA_FILE = WIKIPEDIA_RAW_DIR / "metadata.json"
 USER_AGENT = "chess-tutor/0.1 educational RAG project"
+MAX_DOWNLOAD_ATTEMPTS = 5
+
+
+def sleep_before_retry(error: Exception, attempt: int) -> None:
+    """Sleep before retrying a transient download error."""
+
+    retry_after = None
+
+    if isinstance(error, HTTPError):
+        retry_after = error.headers.get("Retry-After")
+
+    if retry_after and retry_after.isdigit():
+        sleep_seconds = int(retry_after)
+    else:
+        sleep_seconds = min(60, 2**attempt)
+
+    print(f"retrying in {sleep_seconds}s after: {error}")
+    sleep(sleep_seconds)
+
+
+def open_url_with_retries(request: Request):
+    """Open a URL with retries for rate limits and transient timeouts."""
+
+    last_error = None
+
+    for attempt in range(1, MAX_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            return urlopen(request, timeout=60)
+        except HTTPError as error:
+            last_error = error
+            if error.code != 429 or attempt == MAX_DOWNLOAD_ATTEMPTS:
+                raise
+            sleep_before_retry(error, attempt)
+        except (TimeoutError, URLError) as error:
+            last_error = error
+            if attempt == MAX_DOWNLOAD_ATTEMPTS:
+                raise
+            sleep_before_retry(error, attempt)
+
+    raise RuntimeError(f"Download failed: {last_error}")
 
 
 def download_text(source: Source, destination: Path) -> str:
@@ -32,7 +72,7 @@ def download_text(source: Source, destination: Path) -> str:
 
     request = Request(source.download_url, headers={"User-Agent": USER_AGENT})
 
-    with urlopen(request, timeout=30) as response:
+    with open_url_with_retries(request) as response:
         text = response.read().decode("utf-8")
 
     destination.write_text(text, encoding="utf-8")
@@ -54,7 +94,7 @@ def download_wikipedia_text(source: Source, destination: Path) -> str:
 
     request = Request(source.download_url, headers={"User-Agent": USER_AGENT})
 
-    with urlopen(request, timeout=30) as response:
+    with open_url_with_retries(request) as response:
         data = json.loads(response.read().decode("utf-8"))
 
     pages = data["query"]["pages"]
@@ -164,7 +204,7 @@ def download_wikipedia_articles() -> None:
             record = build_metadata_record(source, destination, "failed", str(error))
         records.append(record)
         print_record_status(record, destination)
-        sleep(0.2)
+        sleep(1)
 
     write_metadata(records, WIKIPEDIA_METADATA_FILE)
     print(f"Wrote metadata: {WIKIPEDIA_METADATA_FILE}")
