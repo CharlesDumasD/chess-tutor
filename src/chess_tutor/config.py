@@ -22,6 +22,8 @@ class Settings:
     embedding_cost_per_1m_tokens_usd: float = 0.02
     max_embedding_cost_usd: float = 0.50
     similarity_top_k: int = 10
+    use_hybrid_search: bool = True
+    hybrid_keyword_top_k: int = 10
     max_history_messages: int = 6
     llm_temperature: float = 0.2
     eval_dataset_path: str = "data/eval/golden_dataset.jsonl"
@@ -61,6 +63,13 @@ def load_settings() -> Settings:
         ),
         similarity_top_k=int(
             getenv("SIMILARITY_TOP_K", str(defaults.similarity_top_k))
+        ),
+        use_hybrid_search=getenv(
+            "USE_HYBRID_SEARCH", str(defaults.use_hybrid_search)
+        ).lower()
+        == "true",
+        hybrid_keyword_top_k=int(
+            getenv("HYBRID_KEYWORD_TOP_K", str(defaults.hybrid_keyword_top_k))
         ),
         max_history_messages=int(
             getenv("MAX_HISTORY_MESSAGES", str(defaults.max_history_messages))

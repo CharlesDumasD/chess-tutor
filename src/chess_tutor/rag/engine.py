@@ -6,6 +6,9 @@ from pathlib import Path
 import chromadb
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
+from llama_index.core.indices.keyword_table import SimpleKeywordTableIndex
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -16,8 +19,56 @@ from chess_tutor.rag.prompts import CHESS_TUTOR_SYSTEM_PROMPT
 ChatHistory = list[dict[str, str]]
 
 
-def load_retriever(api_key: str):
-    """Load the ChromaDB retriever from the persisted vector store."""
+class HybridRetriever(BaseRetriever):
+    """Retriever that combines semantic search and simple keyword search."""
+
+    def __init__(
+        self,
+        vector_retriever: BaseRetriever,
+        keyword_retriever: BaseRetriever,
+        max_retrieve: int,
+    ) -> None:
+        """Initialize the hybrid retriever."""
+
+        self.vector_retriever = vector_retriever
+        self.keyword_retriever = keyword_retriever
+        self.max_retrieve = max_retrieve
+        super().__init__()
+
+    def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
+        """Retrieve nodes from both retrievers and deduplicate by node id."""
+
+        vector_nodes = self.vector_retriever.retrieve(query_bundle)
+        keyword_nodes = self.keyword_retriever.retrieve(query_bundle)
+        results = []
+        seen_node_ids = set()
+
+        for nodes in zip(vector_nodes, keyword_nodes):
+            for node in nodes:
+                if node.node.node_id in seen_node_ids:
+                    continue
+
+                results.append(node)
+                seen_node_ids.add(node.node.node_id)
+
+                if len(results) >= self.max_retrieve:
+                    return results
+
+        for node in vector_nodes + keyword_nodes:
+            if node.node.node_id in seen_node_ids:
+                continue
+
+            results.append(node)
+            seen_node_ids.add(node.node.node_id)
+
+            if len(results) >= self.max_retrieve:
+                return results
+
+        return results
+
+
+def load_chroma_collection():
+    """Load the configured ChromaDB collection."""
 
     settings = load_settings()
     persist_dir = Path(settings.persist_dir)
@@ -29,7 +80,41 @@ def load_retriever(api_key: str):
         )
 
     chroma_client = chromadb.PersistentClient(path=str(persist_dir))
-    chroma_collection = chroma_client.get_collection(settings.chroma_collection_name)
+    return chroma_client.get_collection(settings.chroma_collection_name)
+
+
+def load_keyword_retriever(chroma_collection):
+    """Build a simple keyword retriever from persisted Chroma chunks."""
+
+    settings = load_settings()
+    records = chroma_collection.get(include=["documents", "metadatas"])
+    nodes = []
+
+    for chunk_id, document, metadata in zip(
+        records["ids"],
+        records["documents"],
+        records["metadatas"],
+    ):
+        nodes.append(
+            TextNode(
+                id_=chunk_id,
+                text=document,
+                metadata=metadata or {},
+            )
+        )
+
+    keyword_index = SimpleKeywordTableIndex(nodes=nodes)
+    return keyword_index.as_retriever(
+        retriever_mode="simple",
+        num_chunks_per_query=settings.hybrid_keyword_top_k,
+    )
+
+
+def load_retriever(api_key: str):
+    """Load the ChromaDB retriever from the persisted vector store."""
+
+    settings = load_settings()
+    chroma_collection = load_chroma_collection()
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     embed_model = OpenAIEmbedding(
         model=settings.embedding_model,
@@ -39,7 +124,17 @@ def load_retriever(api_key: str):
         vector_store=vector_store,
         embed_model=embed_model,
     )
-    return index.as_retriever(similarity_top_k=settings.similarity_top_k)
+    vector_retriever = index.as_retriever(similarity_top_k=settings.similarity_top_k)
+
+    if not settings.use_hybrid_search:
+        return vector_retriever
+
+    keyword_retriever = load_keyword_retriever(chroma_collection)
+    return HybridRetriever(
+        vector_retriever=vector_retriever,
+        keyword_retriever=keyword_retriever,
+        max_retrieve=settings.similarity_top_k,
+    )
 
 
 def format_context(retrieved_nodes) -> str:
