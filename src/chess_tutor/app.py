@@ -53,6 +53,15 @@ def respond(question: str, history: list[dict[str, str]], api_key: str):
         yield history, ""
 
 
+def build_chatbot() -> gr.Chatbot:
+    """Build a chatbot compatible with local and Hugging Face Gradio versions."""
+
+    try:
+        return gr.Chatbot(label="Conversation", type="messages")
+    except TypeError:
+        return gr.Chatbot(label="Conversation")
+
+
 def build_demo() -> gr.Blocks:
     """Build the Hugging Face Spaces-compatible Gradio interface."""
 
@@ -72,7 +81,7 @@ def build_demo() -> gr.Blocks:
                 "not stored by this app."
             ),
         )
-        chatbot = gr.Chatbot(label="Conversation", type="messages")
+        chatbot = build_chatbot()
         question = gr.Textbox(
             label="Question",
             lines=4,
