@@ -1,8 +1,32 @@
 """Minimal Gradio entry point for the chess tutor."""
 
-import gradio as gr
+from pathlib import Path
 
+import gradio as gr
+from huggingface_hub import snapshot_download
+
+from chess_tutor.config import load_settings
 from chess_tutor.rag.engine import stream_answer
+
+VECTOR_STORE_REPO_ID = "CharlesDumas/chess_tutor_vector_store"
+
+
+def download_vector_store_if_missing() -> None:
+    """Download the ChromaDB vector store from Hugging Face if needed."""
+
+    settings = load_settings()
+    persist_dir = Path(settings.persist_dir)
+    chroma_file = persist_dir / "chroma.sqlite3"
+
+    if chroma_file.exists():
+        return
+
+    persist_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_download(
+        repo_id=VECTOR_STORE_REPO_ID,
+        repo_type="dataset",
+        local_dir=persist_dir,
+    )
 
 
 def respond(question: str, history: list[dict[str, str]], api_key: str):
@@ -79,6 +103,7 @@ def build_demo() -> gr.Blocks:
 def main() -> None:
     """Launch the local Gradio app."""
 
+    download_vector_store_if_missing()
     build_demo().launch()
 
 
