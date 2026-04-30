@@ -182,7 +182,9 @@ Evaluation settings are loaded from `config.py`:
 - `eval_wikipedia_sample_ratio`
 - `eval_generator_sample_size`
 - `use_hybrid_search`
+- `vector_candidate_top_k`
 - `hybrid_keyword_top_k`
+- `use_reranker`
 
 ## Pipeline 6: Evaluation Metrics
 

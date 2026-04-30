@@ -7,6 +7,7 @@ import chromadb
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.indices.keyword_table import SimpleKeywordTableIndex
+from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 from llama_index.embeddings.openai import OpenAIEmbedding
@@ -114,6 +115,11 @@ def load_retriever(api_key: str):
     """Load the ChromaDB retriever from the persisted vector store."""
 
     settings = load_settings()
+    candidate_top_k = (
+        settings.vector_candidate_top_k
+        if settings.use_reranker
+        else settings.similarity_top_k
+    )
     chroma_collection = load_chroma_collection()
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     embed_model = OpenAIEmbedding(
@@ -124,7 +130,7 @@ def load_retriever(api_key: str):
         vector_store=vector_store,
         embed_model=embed_model,
     )
-    vector_retriever = index.as_retriever(similarity_top_k=settings.similarity_top_k)
+    vector_retriever = index.as_retriever(similarity_top_k=candidate_top_k)
 
     if not settings.use_hybrid_search:
         return vector_retriever
@@ -133,8 +139,29 @@ def load_retriever(api_key: str):
     return HybridRetriever(
         vector_retriever=vector_retriever,
         keyword_retriever=keyword_retriever,
-        max_retrieve=settings.similarity_top_k,
+        max_retrieve=candidate_top_k,
     )
+
+
+def rerank_nodes(question: str, api_key: str, retrieved_nodes):
+    """Rerank retrieved chunks and keep the final top-k."""
+
+    settings = load_settings()
+
+    if not settings.use_reranker:
+        return retrieved_nodes[: settings.similarity_top_k]
+
+    reranker_llm = OpenAI(
+        model=settings.eval_llm_model,
+        api_key=api_key,
+        temperature=0.0,
+    )
+    reranker = LLMRerank(
+        llm=reranker_llm,
+        top_n=settings.similarity_top_k,
+    )
+
+    return reranker.postprocess_nodes(retrieved_nodes, query_str=question)
 
 
 def format_context(retrieved_nodes) -> str:
@@ -197,7 +224,8 @@ def retrieve_nodes(question: str, api_key: str, history: ChatHistory | None = No
     retriever = load_retriever(api_key)
     retrieval_query = build_retrieval_query(question, history)
 
-    return retriever.retrieve(retrieval_query)
+    retrieved_nodes = retriever.retrieve(retrieval_query)
+    return rerank_nodes(retrieval_query, api_key, retrieved_nodes)
 
 
 def build_user_prompt(

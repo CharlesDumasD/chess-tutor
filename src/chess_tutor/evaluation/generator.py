@@ -67,6 +67,8 @@ def evaluate_generator() -> None:
     print(f"Questions: {len(dataset)}")
     print(f"Generator model: {settings.llm_model}")
     print(f"Evaluator model: {settings.eval_llm_model}")
+    print(f"Hybrid search: {settings.use_hybrid_search}")
+    print(f"Reranker: {settings.use_reranker}")
 
     for index, record in enumerate(dataset, start=1):
         question = record["question"]
@@ -120,6 +122,8 @@ def evaluate_generator() -> None:
         "questions": len(dataset),
         "generator_model": settings.llm_model,
         "evaluator_model": settings.eval_llm_model,
+        "use_hybrid_search": settings.use_hybrid_search,
+        "use_reranker": settings.use_reranker,
         "faithfulness": faithfulness_mean,
         "relevancy": relevancy_mean,
         "examples": examples,

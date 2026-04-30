@@ -21,9 +21,11 @@ class Settings:
     chunk_overlap: int = 128
     embedding_cost_per_1m_tokens_usd: float = 0.02
     max_embedding_cost_usd: float = 0.50
-    similarity_top_k: int = 10
+    vector_candidate_top_k: int = 10
     use_hybrid_search: bool = True
     hybrid_keyword_top_k: int = 10
+    use_reranker: bool = True
+    similarity_top_k: int = 10
     max_history_messages: int = 6
     llm_temperature: float = 0.2
     eval_dataset_path: str = "data/eval/golden_dataset.jsonl"
@@ -64,6 +66,9 @@ def load_settings() -> Settings:
         similarity_top_k=int(
             getenv("SIMILARITY_TOP_K", str(defaults.similarity_top_k))
         ),
+        vector_candidate_top_k=int(
+            getenv("VECTOR_CANDIDATE_TOP_K", str(defaults.vector_candidate_top_k))
+        ),
         use_hybrid_search=getenv(
             "USE_HYBRID_SEARCH", str(defaults.use_hybrid_search)
         ).lower()
@@ -71,6 +76,8 @@ def load_settings() -> Settings:
         hybrid_keyword_top_k=int(
             getenv("HYBRID_KEYWORD_TOP_K", str(defaults.hybrid_keyword_top_k))
         ),
+        use_reranker=getenv("USE_RERANKER", str(defaults.use_reranker)).lower()
+        == "true",
         max_history_messages=int(
             getenv("MAX_HISTORY_MESSAGES", str(defaults.max_history_messages))
         ),

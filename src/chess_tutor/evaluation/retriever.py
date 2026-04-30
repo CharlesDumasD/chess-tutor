@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from chess_tutor.config import load_settings
-from chess_tutor.rag.engine import load_retriever
+from chess_tutor.rag.engine import retrieve_nodes
 
 
 def load_golden_dataset() -> list[dict[str, str]]:
@@ -68,19 +68,21 @@ def evaluate_retriever() -> None:
         raise RuntimeError("OPENAI_API_KEY is required to evaluate the retriever.")
 
     dataset = load_golden_dataset()
-    retriever = load_retriever(settings.openai_api_key)
-
     hits = 0
     reciprocal_ranks = []
     examples = []
 
     print(f"Questions: {len(dataset)}")
     print(f"Retriever top-k: {settings.similarity_top_k}")
+    print(f"Hybrid search: {settings.use_hybrid_search}")
+    print(f"Reranker: {settings.use_reranker}")
+    print(f"Vector candidate top-k: {settings.vector_candidate_top_k}")
+    print(f"Keyword candidate top-k: {settings.hybrid_keyword_top_k}")
 
     for index, record in enumerate(dataset, start=1):
         question = record["question"]
         expected_id = record["reference_chunk_id"]
-        retrieved_nodes = retriever.retrieve(question)
+        retrieved_nodes = retrieve_nodes(question, settings.openai_api_key)
         retrieved_ids = [get_node_id(node) for node in retrieved_nodes]
 
         hit = expected_id in retrieved_ids
@@ -109,6 +111,10 @@ def evaluate_retriever() -> None:
         "metric": "retriever_eval",
         "questions": len(dataset),
         "top_k": settings.similarity_top_k,
+        "use_hybrid_search": settings.use_hybrid_search,
+        "use_reranker": settings.use_reranker,
+        "vector_candidate_top_k": settings.vector_candidate_top_k,
+        "hybrid_keyword_top_k": settings.hybrid_keyword_top_k,
         "hit_rate": hit_rate,
         "mrr": mrr,
         "examples": examples,
