@@ -2,20 +2,115 @@
 
 A RAG-powered chess tutor for a GenAI engineering certification project.
 
-The goal is to build an educational assistant that answers strategic chess
-questions from a curated chess corpus and cites the retrieved sources used in
-the answer. The app will use Python, LlamaIndex, ChromaDB, OpenAI LLMs and
-embeddings, and a Gradio interface deployable on a public Hugging Face Space.
+General-purpose chatbots are often unreliable at chess because they can
+hallucinate concrete lines, misread positions, and give confident but unsourced
+opening advice. This project uses retrieval-augmented generation to ground the
+assistant in a curated chess corpus and cite the sources used in each answer.
 
-## Project Constraints
+The app is built with Python, LlamaIndex, ChromaDB, OpenAI models, and a Gradio
+interface deployable on Hugging Face Spaces.
 
-- RAG project written in Python
-- At least one LLM
-- Public Hugging Face Space deployment
-- Data collection and curation code in this repository
-- UI element where the user can paste their API key
-- README documentation for API key setup and cost estimation
-- Estimated demo usage cost below USD 0.50
+## Design
+
+The tutor answers chess strategy, opening, tactic, and endgame questions from a
+curated text corpus:
+
+- 6 public-domain Project Gutenberg chess books
+- 3 Internet Archive OCR chess books
+- 107 curated Wikipedia chess articles
+
+The data pipeline downloads raw text, cleans it into processed text files, chunks
+the documents with LlamaIndex, embeds the chunks with OpenAI embeddings, and
+stores them in a local ChromaDB vector store.
+
+The RAG app retrieves relevant chunks, optionally combines semantic and keyword
+retrieval with hybrid search, streams an answer from an OpenAI chat model, and
+shows source citations. The UI includes a password field where users paste their
+own OpenAI API key for the current chat session.
+
+Final retrieval configuration:
+
+- ChromaDB vector store with cosine similarity
+- `text-embedding-3-small` embeddings
+- Hybrid search enabled
+- LLM reranking implemented but disabled by default because evaluation did not
+  justify the additional latency and cost
+- Top 10 chunks used as answer context
+
+## Evaluation
+
+The project includes an evaluation dataset and evaluation scripts in
+`src/chess_tutor/evaluation/`.
+
+The golden dataset is generated from indexed chunks and saved as JSONL in:
+
+```text
+data/eval/golden_dataset.jsonl
+```
+
+Retriever evaluation measures:
+
+- Hit rate
+- MRR
+
+Generator evaluation measures:
+
+- Faithfulness
+- Relevancy
+
+Current evaluation results:
+
+| Configuration | Hit Rate |   MRR | Faithfulness | Relevancy |
+| --- |---------:|------:| ---: | ---: |
+| Vector search baseline |    0.310 | 0.170 | 0.750 | 0.800 |
+| Hybrid search |    0.300 | 0.149 | TBD | TBD |
+| Hybrid search + reranking |    0.230 | 0.128 | TBD | TBD |
+
+Hybrid search did not improve the chunk-level retrieval metrics on the generated
+evaluation dataset. It is still enabled in the final app because chess questions
+often contain exact opening names, tactical motifs, and move notation where
+keyword matching is useful in practice. Reranking remains available through
+configuration, but is disabled by default because it added latency and cost
+without clear metric improvement.
+
+## Required API Keys
+
+To use the app, the user needs:
+
+- OpenAI API key
+
+For local development, place it in `.env`:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+For the Gradio app, paste the OpenAI API key into the UI password field. The app
+uses that key only for the current chat session; it does not write the key to
+files, log it, or store it in conversation history.
+
+## Cost Estimation
+
+The app is designed so a user can try all main functionality for less than
+USD 0.50 with their own OpenAI API key.
+
+Approximate demo session:
+
+- 10 to 20 chat questions
+- one query embedding call per question
+- one small OpenAI chat completion per answer
+- 10 retrieved chunks in the answer context
+- no indexing cost charged to the app user
+
+The indexing pipeline uses `text-embedding-3-small`. In local testing, indexing
+the full corpus was estimated at about 1.5M embedding tokens, or roughly USD
+0.03 at USD 0.02 per 1M tokens. Normal app usage is cheaper because each user
+question embeds only the query and sends one compact RAG prompt to the chat
+model.
+
+The exact cost depends on the selected OpenAI models, answer length, and number
+of questions, but a normal certification/demo session should remain well below
+USD 0.50.
 
 ## Setup
 
@@ -38,12 +133,6 @@ Then edit `.env` and add your OpenAI API key:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-The local `.env` key is used by backend pipeline commands such as indexing.
-The Gradio app also includes a password field where users can paste their own
-OpenAI API key. That UI key is passed to the backend only to call OpenAI for the
-current chat session; the app does not log it, write it to files, or store it in
-conversation history.
-
 Optional: install pre-commit hooks.
 
 ```bash
@@ -58,12 +147,6 @@ Download the raw corpus:
 uv run chess-tutor-download
 ```
 
-This downloads:
-
-- 6 Project Gutenberg chess books
-- 3 Internet Archive OCR text books
-- 107 curated Wikipedia chess articles
-
 Raw files are written to:
 
 ```text
@@ -76,67 +159,36 @@ download errors.
 
 ## Pipeline 2: Text Processing
 
-This step will clean the raw text files and write normalized files to:
-
-```text
-data/processed/
-```
-
-Processing includes:
-
-- Remove Project Gutenberg header/footer boilerplate
-- Normalize whitespace
-- Keep Wikipedia text mostly as-is
-- Preserve source metadata for later citations
-
-Run the processing pipeline:
+Clean raw text files into normalized processed text:
 
 ```bash
 uv run chess-tutor-process
 ```
 
-## Pipeline 3: Vector Indexing
-
-This step will chunk the processed corpus, embed chunks with OpenAI embeddings,
-and store them in ChromaDB.
-
-Generated artifacts will be written to:
+Processed files are written to:
 
 ```text
-data/generated/
+data/processed/
 ```
 
-Run the indexing pipeline:
+## Pipeline 3: Vector Indexing
+
+Chunk the processed corpus, embed chunks with OpenAI embeddings, and store them
+in ChromaDB:
 
 ```bash
 uv run chess-tutor-index
 ```
 
-The index command rebuilds the local ChromaDB collection each time using cosine
-similarity, which keeps the pipeline simple and avoids duplicate chunks while
-iterating.
+Generated artifacts are written to:
 
-Pipeline settings are loaded from `src/chess_tutor/config.py`. The `Settings`
-dataclass defines the default values used by the app, including:
+```text
+data/generated/
+```
 
-- embedding model
-- LLM model
-- processed data directory
-- ChromaDB persist directory and collection name
-- chunk size and overlap
-- retrieval top-k
-- conversation memory length
-- LLM temperature
-- embedding cost estimate and maximum allowed indexing cost
-
-For experiments, change the defaults in `config.py`. For local secrets or
-machine-specific overrides, add environment variables to `.env`; `load_settings()`
-loads `.env` and lets environment variables override the defaults.
-
-The default embedding cost estimate uses OpenAI's published
-`text-embedding-3-small` price of USD 0.02 per 1M tokens.
-If the estimated embedding cost is above `max_embedding_cost_usd`, the index
-command stops before calling the OpenAI API. The default limit is USD 0.50.
+The index command rebuilds the local ChromaDB collection each time. Pipeline
+settings are loaded from `src/chess_tutor/config.py`; defaults can be changed
+there, while secrets and local overrides can be placed in `.env`.
 
 ## Pipeline 4: RAG Tutor App
 
@@ -146,45 +198,18 @@ Run the local Gradio app:
 uv run chess-tutor
 ```
 
-The final app will:
-
-- Let the user paste an OpenAI API key
-- Retrieve relevant chess corpus chunks from ChromaDB
-- Generate a sourced answer with an OpenAI LLM through LlamaIndex
-- Cite the source documents used in the answer
-- Keep simple conversational memory through the Gradio chat history
+The Hugging Face Spaces entry point is the root `app.py`.
 
 ## Pipeline 5: Evaluation Dataset
 
-Create a small golden dataset of evaluation questions:
+Create the golden evaluation dataset:
 
 ```bash
 uv run chess-tutor-generate-eval-dataset
 ```
 
-This command loads chunks from the current ChromaDB index and generates one
-question for a small deterministic sample of chunks. The result is saved to:
-
-```text
-data/eval/golden_dataset.jsonl
-```
-
 If the dataset already exists, the command stops without regenerating it. This
 keeps evaluation runs comparable and avoids unnecessary OpenAI API calls.
-
-Evaluation settings are loaded from `config.py`:
-
-- `eval_dataset_path`
-- `eval_llm_model`
-- `eval_runs_dir`
-- `eval_sample_size`
-- `eval_random_seed`
-- `eval_wikipedia_sample_ratio`
-- `eval_generator_sample_size`
-- `use_hybrid_search`
-- `vector_candidate_top_k`
-- `hybrid_keyword_top_k`
-- `use_reranker`
 
 ## Pipeline 6: Evaluation Metrics
 
@@ -194,20 +219,11 @@ Run retriever evaluation:
 uv run chess-tutor-eval-retriever
 ```
 
-This computes hit rate and MRR by checking whether the retriever returns the
-expected source chunk from the golden dataset.
-
 Run generator evaluation:
 
 ```bash
 uv run chess-tutor-eval-generator
 ```
-
-This samples a smaller subset of the golden dataset, generates answers with the
-current RAG pipeline, and scores them with LlamaIndex evaluators:
-
-- Retrieval checks against expected source evidence with hit rate and MRR
-- Generation checks for faithfulness and relevancy
 
 Evaluation run summaries are written to:
 
@@ -215,42 +231,27 @@ Evaluation run summaries are written to:
 data/eval/runs/
 ```
 
-## Cost Estimation
-
-The project is designed for lightweight demo usage. A typical question should
-use one embedding call for the query, a small number of retrieved chunks, and one
-LLM response.
-
-Approximate target budget for a short demo session:
-
-- 10 to 20 user questions
-- Small embedding model for retrieval
-- Small OpenAI chat model for answer generation
-- Expected cost: less than USD 0.50 for normal certification/demo usage
-
-The exact cost depends on the selected OpenAI models, prompt length, retrieved
-context size, and answer length. The implementation should keep prompts compact
-and use a low-cost model by default.
-
 ## Codebase Structure
 
 ```text
+app.py                  Hugging Face Spaces entry point
+requirements.txt        Hugging Face Spaces Python install file
 src/chess_tutor/
-  app.py                 Gradio UI entry point
-  config.py              Environment and runtime settings
-  data_collection/       Raw corpus download pipeline
-  data_processing/       Text cleaning and normalization
-  vector_store/          OpenAI embeddings and ChromaDB indexing
-  rag/                   Prompting, retrieval, generation, and chat history
-  evaluation/            Golden dataset, retrieval metrics, generation metrics
+  app.py                Gradio UI
+  config.py             Runtime settings
+  data_collection/      Raw corpus download pipeline
+  data_processing/      Text cleaning and normalization
+  vector_store/         OpenAI embeddings and ChromaDB indexing
+  rag/                  Prompting, retrieval, generation, and chat history
+  evaluation/           Golden dataset, retrieval metrics, generation metrics
 data/
-  README.md              Data layout and source rules
-  raw/                   Downloaded source files (git ignored)
-  processed/             Cleaned text files (git ignored)
-  generated/             Chunks, vector stores, and logs (git ignored)
-  eval/                  Golden datasets and evaluation reports (git tracked)
+  README.md             Data layout and source rules
+  raw/                  Downloaded source files (git ignored)
+  processed/            Cleaned text files (git ignored)
+  generated/            ChromaDB vector store (git ignored)
+  eval/                 Golden dataset and evaluation reports
 ```
 
 Note: only public domain or properly licensed sources should be included in the
-repository. Copyrighted books should not be copied into the corpus unless their
+corpus. Copyrighted books should not be copied into the corpus unless their
 license explicitly allows it.
