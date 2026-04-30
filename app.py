@@ -1,6 +1,11 @@
 """Hugging Face Spaces entry point."""
 
-from chess_tutor.app import build_demo
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+from chess_tutor.app import build_demo  # noqa: E402
 
 demo = build_demo()
 
