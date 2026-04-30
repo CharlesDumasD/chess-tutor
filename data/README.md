@@ -3,7 +3,7 @@
 This project separates downloaded source files, processed text, generated
 artifacts, and evaluation data so the RAG pipeline stays easy to inspect.
 
-## Suggested Layout
+## Layout
 
 - `raw/`: downloaded source files such as PDFs, HTML, or text exports.
 - `processed/`: extracted and cleaned text files.
