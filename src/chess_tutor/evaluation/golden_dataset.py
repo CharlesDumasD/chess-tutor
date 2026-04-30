@@ -2,6 +2,7 @@
 
 import json
 import random
+from collections import Counter
 from pathlib import Path
 
 import chromadb
@@ -18,8 +19,18 @@ def build_question_prompt(chunk_text: str, title: str) -> str:
     return f"""
 You are creating an evaluation question for a chess RAG tutor.
 
-Write one natural user question that can be answered from the source chunk below.
-The question should be specific enough that a retriever should need this chunk.
+Write one natural question that a chess student might ask a tutor.
+The question must be about a reusable chess concept, plan, opening idea,
+tactical motif, endgame idea, or positional theme found in the source chunk.
+
+Good questions sound like:
+- "Why can an isolated pawn become weak in the endgame?"
+- "What is Black trying to achieve in Alekhine's Defence?"
+- "How should I think about outposts created by backward pawns?"
+
+Avoid questions about the document itself.
+Do not ask what the text says, what examples are mentioned, what game number is
+shown, who played a specific historical game, or what the exact first moves were.
 Do not mention the source title or say "according to the text".
 
 Return only valid JSON with this shape:
@@ -75,13 +86,39 @@ def load_index_chunks() -> list[dict[str, object]]:
 
 
 def sample_chunks(chunks: list[dict[str, object]]) -> list[dict[str, object]]:
-    """Sample chunks deterministically so eval runs are easy to compare."""
+    """Sample chunks with a minimum share of Wikipedia articles."""
 
     settings = load_settings()
     sample_size = min(settings.eval_sample_size, len(chunks))
     rng = random.Random(settings.eval_random_seed)
 
-    return rng.sample(chunks, sample_size)
+    wikipedia_chunks = [
+        chunk for chunk in chunks if chunk["metadata"].get("provider") == "wikipedia"
+    ]
+    other_chunks = [
+        chunk for chunk in chunks if chunk["metadata"].get("provider") != "wikipedia"
+    ]
+
+    wikipedia_sample_size = min(
+        round(sample_size * settings.eval_wikipedia_sample_ratio),
+        len(wikipedia_chunks),
+    )
+    other_sample_size = min(sample_size - wikipedia_sample_size, len(other_chunks))
+
+    sampled_chunks = []
+    sampled_chunks.extend(rng.sample(wikipedia_chunks, wikipedia_sample_size))
+    sampled_chunks.extend(rng.sample(other_chunks, other_sample_size))
+
+    remaining_sample_size = sample_size - len(sampled_chunks)
+    if remaining_sample_size:
+        already_sampled_ids = {chunk["chunk_id"] for chunk in sampled_chunks}
+        remaining_chunks = [
+            chunk for chunk in chunks if chunk["chunk_id"] not in already_sampled_ids
+        ]
+        sampled_chunks.extend(rng.sample(remaining_chunks, remaining_sample_size))
+
+    rng.shuffle(sampled_chunks)
+    return sampled_chunks
 
 
 def build_golden_dataset() -> None:
@@ -116,6 +153,10 @@ def build_golden_dataset() -> None:
 
     print(f"Loaded indexed chunks: {len(chunks)}")
     print(f"Questions to generate: {len(sampled_chunks)}")
+    sampled_providers = Counter(
+        chunk["metadata"].get("provider") for chunk in sampled_chunks
+    )
+    print(f"Sampled providers: {dict(sampled_providers)}")
     print(f"Output file: {dataset_path}")
 
     try:

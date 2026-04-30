@@ -21,13 +21,14 @@ class Settings:
     chunk_overlap: int = 128
     embedding_cost_per_1m_tokens_usd: float = 0.02
     max_embedding_cost_usd: float = 0.50
-    similarity_top_k: int = 5
+    similarity_top_k: int = 10
     max_history_messages: int = 6
     llm_temperature: float = 0.2
     eval_dataset_path: str = "data/eval/golden_dataset.jsonl"
     eval_runs_dir: str = "data/eval/runs"
     eval_sample_size: int = 100
     eval_random_seed: int = 7
+    eval_wikipedia_sample_ratio: float = 0.5
     eval_generator_sample_size: int = 20
 
 
@@ -74,6 +75,12 @@ def load_settings() -> Settings:
         ),
         eval_random_seed=int(
             getenv("EVAL_RANDOM_SEED", str(defaults.eval_random_seed))
+        ),
+        eval_wikipedia_sample_ratio=float(
+            getenv(
+                "EVAL_WIKIPEDIA_SAMPLE_RATIO",
+                str(defaults.eval_wikipedia_sample_ratio),
+            )
         ),
         eval_generator_sample_size=int(
             getenv(

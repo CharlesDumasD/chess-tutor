@@ -179,6 +179,7 @@ Evaluation settings are loaded from `config.py`:
 - `eval_runs_dir`
 - `eval_sample_size`
 - `eval_random_seed`
+- `eval_wikipedia_sample_ratio`
 - `eval_generator_sample_size`
 
 ## Pipeline 6: Evaluation Metrics
