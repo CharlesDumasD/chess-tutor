@@ -61,10 +61,10 @@ Generator evaluation measures:
 Current evaluation results:
 
 | Configuration | Hit Rate |   MRR | Faithfulness | Relevancy |
-| --- |---------:|------:| ---: | ---: |
-| Vector search baseline |    0.310 | 0.170 | 0.750 | 0.800 |
-| Hybrid search |    0.300 | 0.149 | TBD | TBD |
-| Hybrid search + reranking |    0.230 | 0.128 | TBD | TBD |
+| --- |---------:|------:|-------------:|----------:|
+| Vector search baseline |    0.310 | 0.170 |        0.750 |     0.800 |
+| Hybrid search |    0.300 | 0.149 |        0.800 |     0.850 |
+| Hybrid search + reranking |    0.230 | 0.128 |            - |         - |
 
 Hybrid search did not improve the chunk-level retrieval metrics on the generated
 evaluation dataset. It is still enabled in the final app because chess questions
