@@ -73,6 +73,17 @@ keyword matching is useful in practice. Reranking remains available through
 configuration, but is disabled by default because it added latency and cost
 without clear metric improvement.
 
+## Implemented Optional Functionalities
+
+The project implements at least 5 optional functionalities from the course list:
+
+- Streaming responses in the Gradio chat UI
+- RAG evaluation code, evaluation dataset, and evaluation results
+- Specific non-AI domain: chess tutoring
+- Evidence of collecting multiple external data sources: Project Gutenberg, Internet Archive, and Wikipedia
+- Hybrid search combining vector retrieval and keyword retrieval
+- LLM reranking implemented as an optional retrieval layer
+
 ## Required API Keys
 
 To use the app, the user needs:
