@@ -52,7 +52,11 @@ def build_demo() -> gr.Blocks:
         question = gr.Textbox(
             label="Question",
             lines=4,
-            placeholder="Why is the Nimzo-Indian pawn structure comfortable for Black?",
+            placeholder=(
+                "What do you recommend me to play in the classical line of the "
+                "Caro-Kann after 4... Nf6 5. Nxf6+ exf6? What are the key "
+                "concepts here?"
+            ),
         )
         submit = gr.Button("Ask")
         clear = gr.Button("Clear")

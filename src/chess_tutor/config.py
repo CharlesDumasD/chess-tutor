@@ -24,7 +24,7 @@ class Settings:
     vector_candidate_top_k: int = 10
     use_hybrid_search: bool = True
     hybrid_keyword_top_k: int = 10
-    use_reranker: bool = True
+    use_reranker: bool = False
     similarity_top_k: int = 10
     max_history_messages: int = 6
     llm_temperature: float = 0.2
