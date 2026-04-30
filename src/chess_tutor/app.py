@@ -107,13 +107,13 @@ def build_demo() -> gr.Blocks:
         )
         clear.click(lambda: [], outputs=chatbot)
 
-    return demo
+    return demo.queue()
 
 
 def main() -> None:
     """Launch the local Gradio app."""
 
-    build_demo().launch()
+    build_demo().launch(ssr_mode=False)
 
 
 if __name__ == "__main__":
