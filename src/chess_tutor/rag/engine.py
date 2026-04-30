@@ -84,7 +84,7 @@ def load_chroma_collection():
     return chroma_client.get_collection(settings.chroma_collection_name)
 
 
-def load_keyword_retriever(chroma_collection):
+def load_keyword_retriever(chroma_collection, api_key: str):
     """Build a simple keyword retriever from persisted Chroma chunks."""
 
     settings = load_settings()
@@ -104,7 +104,12 @@ def load_keyword_retriever(chroma_collection):
             )
         )
 
-    keyword_index = SimpleKeywordTableIndex(nodes=nodes)
+    llm = OpenAI(
+        model=settings.llm_model,
+        api_key=api_key,
+        temperature=0.0,
+    )
+    keyword_index = SimpleKeywordTableIndex(nodes=nodes, llm=llm)
     return keyword_index.as_retriever(
         retriever_mode="simple",
         num_chunks_per_query=settings.hybrid_keyword_top_k,
@@ -135,7 +140,7 @@ def load_retriever(api_key: str):
     if not settings.use_hybrid_search:
         return vector_retriever
 
-    keyword_retriever = load_keyword_retriever(chroma_collection)
+    keyword_retriever = load_keyword_retriever(chroma_collection, api_key)
     return HybridRetriever(
         vector_retriever=vector_retriever,
         keyword_retriever=keyword_retriever,
