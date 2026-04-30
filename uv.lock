@@ -510,7 +510,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "chromadb", specifier = ">=1.0.0" },
-    { name = "gradio", specifier = ">=5.9.0" },
+    { name = "gradio", specifier = ">=5.27.0" },
     { name = "huggingface-hub", specifier = ">=0.25.0" },
     { name = "llama-index", specifier = ">=0.13.0" },
     { name = "llama-index-embeddings-openai", specifier = ">=0.5.0" },
